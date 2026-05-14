@@ -133,7 +133,7 @@ The ratio `G / c² ≈ 7.4e-28` is so small that 32-bit floats round gravitomagn
 ## File map
 
 ```
-PlayGR/
+playGR/
   index.html
   package.json
   vite.config.js

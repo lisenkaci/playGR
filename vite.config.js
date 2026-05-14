@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   // Relative base so the production build works both at a domain root and
-  // under a sub-path like `https://lisenkaci.github.io/PlayGR/` (GitHub Pages).
+  // under a sub-path like `https://lisenkaci.github.io/playGR/` (GitHub Pages).
   base: './',
   server: {
     fs: {

@@ -19,13 +19,13 @@
     "frame-dragging",
     "sandbox"
   ],
-  "homepage": "https://github.com/lisenkaci/PlayGR#readme",
+  "homepage": "https://github.com/lisenkaci/playGR#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lisenkaci/PlayGR.git"
+    "url": "git+https://github.com/lisenkaci/playGR.git"
   },
   "bugs": {
-    "url": "https://github.com/lisenkaci/PlayGR/issues"
+    "url": "https://github.com/lisenkaci/playGR/issues"
   },
   "author": "Lisen Kaci",
   "license": "MIT",
