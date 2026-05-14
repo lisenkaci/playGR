@@ -7,7 +7,13 @@ A browser-based playground that simulates **Maxwell's equations** and **Extended
 > **Status**: open source, MIT licensed, contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [ARCHITECTURE.md](ARCHITECTURE.md) before opening a PR.
 
 <p align="center">
-  <img src="./docs/preview.png" alt="Spacetime Sandbox: a binary system (top-left) warps the wireframe lattice while spacetime-river streamlines flow into the wells; the right-hand panel shows the simulation and visualisation controls" width="640">
+  <video src="./docs/playGRDemo.mp4" width="640" controls autoplay loop muted playsinline>
+    Demo video — your browser does not support inline playback. <a href="./docs/playGRDemo.mp4">Download playGRDemo.mp4</a>.
+  </video>
+</p>
+
+<p align="center">
+  <em>A binary system warps the wireframe lattice while spacetime-river streamlines flow into the wells; the right-hand panel shows the simulation and visualisation controls.</em>
 </p>
 
 ## What it does
