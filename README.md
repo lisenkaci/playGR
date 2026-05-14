@@ -1,3 +1,4 @@
+<img width="800" height="446" alt="ezgif-35c4656901a17fbe" src="https://github.com/user-attachments/assets/edb349c6-48dc-4b71-a5d5-7f3091fae139" />
 # Relativistic Spacetime Sandbox
 
 A browser-based playground that simulates **Maxwell's equations** and **Extended Gravitoelectromagnetism (GEM)** with **Jefimenko / Liénard–Wiechert retarded potentials**, in strict 64-bit floating-point — with no cheating on the physical constants.
