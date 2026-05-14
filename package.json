@@ -1,0 +1,49 @@
+{
+  "name": "spacetime-sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser-based 4D relativistic spacetime sandbox: Maxwell + Extended GEM in f64 Rust/WASM, rendered with Three.js.",
+  "keywords": [
+    "physics",
+    "simulation",
+    "relativity",
+    "gravitoelectromagnetism",
+    "gem",
+    "maxwell",
+    "lienard-wiechert",
+    "wasm",
+    "rust",
+    "threejs",
+    "webgl",
+    "frame-dragging",
+    "sandbox"
+  ],
+  "homepage": "https://github.com/lisenkaci/PlayGR#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lisenkaci/PlayGR.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lisenkaci/PlayGR/issues"
+  },
+  "author": "Lisen Kaci",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:wasm": "wasm-pack build wasm --target web --out-dir pkg --release",
+    "build:wasm:dev": "wasm-pack build wasm --target web --out-dir pkg --dev",
+    "dev": "npm run build:wasm:dev && vite",
+    "build": "npm run build:wasm && vite build",
+    "preview": "vite preview",
+    "test:wasm": "cd wasm && cargo test --release"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  }
+}

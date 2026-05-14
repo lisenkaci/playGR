@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relativistic Spacetime Sandbox</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="viewport"></canvas>
+
+      <aside id="panel">
+        <header>
+          <h1>Spacetime Sandbox</h1>
+          <p class="sub">Maxwell + Extended GEM, strict f64</p>
+        </header>
+
+        <section class="card" id="presets">
+          <h2>Spawn Preset</h2>
+          <div class="preset-grid"></div>
+        </section>
+
+        <section class="card" id="manual-spawn">
+          <h2>Custom Particle</h2>
+          <label>Mass (kg) <input type="text" id="f-mass" value="1.0e26" /></label>
+          <label>Charge (C) <input type="text" id="f-charge" value="0" /></label>
+          <label>Radius (m) <input type="text" id="f-radius" value="1.0e3" /></label>
+          <label>Position (m) <input type="text" id="f-pos" value="0,0,0" /></label>
+          <label>Velocity (m/s) <input type="text" id="f-vel" value="0,0,0" /></label>
+          <label>Spin axis <input type="text" id="f-spin-axis" value="0,1,0" /></label>
+          <label>Spin |&omega;| (rad/s) <input type="text" id="f-spin-omega" value="0" /></label>
+          <label class="checkbox"><input type="checkbox" id="f-allow-merger" /> Let this body merge on contact</label>
+          <button id="spawn-btn">Spawn at origin</button>
+          <label class="checkbox" style="margin-top:6px"><input type="checkbox" id="click-to-spawn" /> Click + drag in viewport to spawn</label>
+          <p class="hint">With click-to-spawn on, press in empty space to spawn a body, drag to position it precisely, and release. Flick the cursor before releasing to throw the body into orbit (faster mouse = more velocity). Click a body to inspect or drag it; press <kbd>Delete</kbd> or <kbd>Backspace</kbd> to remove the selected one.</p>
+        </section>
+
+        <section class="card" id="inspector">
+          <h2>Selected Body <span id="ins-id" class="sub"></span></h2>
+          <div id="ins-empty" class="hint">No body selected. Click any particle in the viewport.</div>
+          <table id="ins-table" class="readout" hidden>
+            <tr><td>Mass (kg)</td><td id="ins-mass">&mdash;</td></tr>
+            <tr><td>Charge (C)</td><td id="ins-charge">&mdash;</td></tr>
+            <tr><td>Radius (m)</td><td id="ins-radius">&mdash;</td></tr>
+            <tr><td>|r| (m)</td><td id="ins-rmag">&mdash;</td></tr>
+            <tr><td>|v| (m/s)</td><td id="ins-vmag">&mdash;</td></tr>
+            <tr><td>&gamma;</td><td id="ins-gamma">&mdash;</td></tr>
+            <tr><td>|S| (kg&middot;m&sup2;/s)</td><td id="ins-spinmag">&mdash;</td></tr>
+          </table>
+          <button id="ins-delete-btn" hidden>Delete (Del / Backspace)</button>
+        </section>
+
+        <section class="card" id="sim-controls">
+          <h2>Simulation</h2>
+          <label>Physics seconds / wall second
+            <input type="range" id="time-scale" min="-6" max="2" step="0.1" value="-1" />
+            <span id="time-scale-readout">1.0e-1</span>
+          </label>
+          <label class="checkbox"><input type="checkbox" id="pause" /> Pause</label>
+          <label class="checkbox"><input type="checkbox" id="show-grid" checked /> Spacetime lattice</label>
+          <label>Cell density (per axis)
+            <input type="range" id="cell-density" min="6" max="25" step="1" value="11" />
+            <span id="cell-density-readout">11</span>
+          </label>
+          <label class="checkbox"><input type="checkbox" id="show-flow" /> Spacetime river</label>
+          <label class="checkbox"><input type="checkbox" id="show-jets" checked /> Gravitomagnetic jets</label>
+          <label class="checkbox"><input type="checkbox" id="show-forces" /> Force vectors</label>
+          <label class="checkbox"><input type="checkbox" id="mergers-default" /> Force merger on new spawns</label>
+          <div class="row">
+            <button id="frame-all-btn">Frame all bodies</button>
+            <button id="reset-btn">Clear scene</button>
+          </div>
+        </section>
+
+        <section class="card" id="hud">
+          <h2>Diagnostics</h2>
+          <table class="readout">
+            <tr><td>Particles</td><td id="d-n">0</td></tr>
+            <tr><td>Total energy (J)</td><td id="d-e">0</td></tr>
+            <tr><td>|p| (kg&middot;m/s)</td><td id="d-p">0</td></tr>
+            <tr><td>max &gamma;</td><td id="d-gamma">1.000</td></tr>
+            <tr><td>max |B_g| (1/s)</td><td id="d-bg">0</td></tr>
+            <tr><td>Steps/frame</td><td id="d-steps">0</td></tr>
+            <tr><td>Sim time (s)</td><td id="d-t">0</td></tr>
+          </table>
+        </section>
+
+        <section class="card" id="scene-io">
+          <h2>Scene</h2>
+          <button id="save-btn">Save (JSON)</button>
+          <button id="load-btn">Load</button>
+          <input type="file" id="load-file" accept="application/json" hidden />
+        </section>
+
+        <footer>
+          <p class="fine">G, c, &epsilon;<sub>0</sub>, &mu;<sub>0</sub> are the SI values. No physics multipliers.</p>
+        </footer>
+      </aside>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

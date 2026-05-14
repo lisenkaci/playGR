@@ -1,0 +1,24 @@
+# --- JS / Node ---
+node_modules/
+dist/
+.vite/
+*.log
+npm-debug.log*
+
+# --- Rust / WASM ---
+wasm/target/
+# wasm/pkg/ is the wasm-pack output. We intentionally do NOT commit it:
+# the prepare script regenerates it on `npm install`, and shipping a binary
+# blob in git history bloats the repo and creates rebase pain.
+wasm/pkg/
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Build artefacts ---
+*.wasm.bak
+.tmp/
