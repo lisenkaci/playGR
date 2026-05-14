@@ -31,9 +31,9 @@ pub struct Particle {
     pub id: u32,
 
     // Invariant ("rest") quantities
-    pub mass: f64,    // kg, rest mass
-    pub charge: f64,  // C
-    pub radius: f64,  // m, hard-sphere collision radius
+    pub mass: f64,   // kg, rest mass
+    pub charge: f64, // C
+    pub radius: f64, // m, hard-sphere collision radius
 
     // Spin: the rigid-body angular momentum vector S = I omega (SI units kg m^2 / s).
     // Treated as a constant magnetic/gravitomagnetic dipole moment in the field
@@ -44,7 +44,7 @@ pub struct Particle {
     // momentum (not velocity) so we never have to compute 1/sqrt(1 - v^2/c^2),
     // which is the term that explodes near c. Velocity is recovered on demand.
     pub r: Vec3,
-    pub p: Vec3, // relativistic momentum gamma * m * v
+    pub p: Vec3,      // relativistic momentum gamma * m * v
     pub a_prev: Vec3, // acceleration from the previous substep (for Verlet)
 
     // Last-good kinematic state, used by the NaN sentinel to roll back a
@@ -59,6 +59,12 @@ pub struct Particle {
 }
 
 impl Particle {
+    // Particle construction takes every physical parameter explicitly so
+    // callers can never accidentally default a value -- mass, charge,
+    // radius, position, velocity, and spin are all required at construction
+    // time. Wrapping these in a builder struct would add an indirection
+    // for no real safety win, so we suppress the lint.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: u32,
         mass: f64,
@@ -73,12 +79,23 @@ impl Particle {
     ) -> Self {
         let p = momentum_from_velocity(v, mass);
         let mut history = RingBuffer::new(history_capacity);
-        history.push(State { t: t_now, r, v, a: Vec3::ZERO });
+        history.push(State {
+            t: t_now,
+            r,
+            v,
+            a: Vec3::ZERO,
+        });
         Particle {
-            id, mass, charge, radius, spin,
-            r, p,
+            id,
+            mass,
+            charge,
+            radius,
+            spin,
+            r,
+            p,
             a_prev: Vec3::ZERO,
-            r_safe: r, p_safe: p,
+            r_safe: r,
+            p_safe: p,
             allow_merger,
             alive: true,
             history,
@@ -124,7 +141,12 @@ impl Particle {
         self.a_prev = Vec3::ZERO;
         self.snapshot_safe();
         self.history.clear();
-        self.history.push(State { t: t_now, r: new_r, v: new_v, a: Vec3::ZERO });
+        self.history.push(State {
+            t: t_now,
+            r: new_r,
+            v: new_v,
+            a: Vec3::ZERO,
+        });
     }
 
     pub fn snapshot_safe(&mut self) {
@@ -147,8 +169,12 @@ impl Particle {
 #[inline]
 pub fn momentum_from_velocity(v: Vec3, mass: f64) -> Vec3 {
     let v2 = v.norm_sq();
-    if v2 <= 0.0 { return Vec3::ZERO; }
-    if mass <= 0.0 { return Vec3::ZERO; }
+    if v2 <= 0.0 {
+        return Vec3::ZERO;
+    }
+    if mass <= 0.0 {
+        return Vec3::ZERO;
+    }
     let beta2 = (v2 / C2).min(0.999_999_999_999);
     let gamma = 1.0 / (1.0 - beta2).sqrt();
     v * (gamma * mass)
@@ -161,13 +187,17 @@ pub fn velocity_from_momentum(p: Vec3, mass: f64) -> Vec3 {
     let p2 = p.norm_sq();
     let mc2 = mass * C2;
     let denom = (p2 * C2 + mc2 * mc2).sqrt();
-    if denom == 0.0 { return Vec3::ZERO; }
+    if denom == 0.0 {
+        return Vec3::ZERO;
+    }
     p * (C2 / denom)
 }
 
 #[inline]
 pub fn gamma_from_momentum(p: Vec3, mass: f64) -> f64 {
-    if mass <= 0.0 { return 1.0; }
+    if mass <= 0.0 {
+        return 1.0;
+    }
     // E / (m c^2) = sqrt(1 + (p / m c)^2)
     let mc = mass * crate::constants::C;
     (1.0 + p.norm_sq() / (mc * mc)).sqrt()
@@ -181,9 +211,12 @@ pub fn gamma_from_momentum(p: Vec3, mass: f64) -> f64 {
 pub fn clamp_velocity(v: Vec3) -> Vec3 {
     let v2 = v.norm_sq();
     let v2_cap = BETA_CAP_2 * C2;
-    if v2 <= v2_cap { return v; }
+    if v2 <= v2_cap {
+        return v;
+    }
     v * (v2_cap / v2).sqrt()
 }
 
 // C4 is referenced inside energy() above; this const stays in scope.
-#[allow(dead_code)] const _C4_KEEP: f64 = C4;
+#[allow(dead_code)]
+const _C4_KEEP: f64 = C4;

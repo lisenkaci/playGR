@@ -19,7 +19,8 @@ pub struct World {
     pub last_step_count: u32,
     pub mergers_total: u32,
     pub bounces_total: u32,
-    #[allow(dead_code)] pub default_dt: f64,
+    #[allow(dead_code)]
+    pub default_dt: f64,
     forces_prev: Vec<(Vec3, Fields)>,
 }
 
@@ -59,23 +60,40 @@ impl World {
     }
 
     pub fn spawn(&mut self, spec: SpawnSpec) -> Result<u32, SpawnError> {
-        if !spec.r.is_finite() || !spec.v.is_finite() || !spec.spin.is_finite()
-            || !spec.mass.is_finite() || !spec.charge.is_finite() || !spec.radius.is_finite() {
+        if !spec.r.is_finite()
+            || !spec.v.is_finite()
+            || !spec.spin.is_finite()
+            || !spec.mass.is_finite()
+            || !spec.charge.is_finite()
+            || !spec.radius.is_finite()
+        {
             return Err(SpawnError::NonFiniteInput);
         }
-        if spec.mass <= 0.0 { return Err(SpawnError::NonPositiveMass); }
-        if spec.radius <= 0.0 { return Err(SpawnError::NonPositiveRadius); }
-        if spec.v.norm_sq() >= C * C { return Err(SpawnError::SuperluminalVelocity); }
+        if spec.mass <= 0.0 {
+            return Err(SpawnError::NonPositiveMass);
+        }
+        if spec.radius <= 0.0 {
+            return Err(SpawnError::NonPositiveRadius);
+        }
+        if spec.v.norm_sq() >= C * C {
+            return Err(SpawnError::SuperluminalVelocity);
+        }
         // Weak-field guard.
         let potential_ratio = G * spec.mass / (spec.radius * C * C);
-        if potential_ratio >= WEAK_FIELD_LIMIT { return Err(SpawnError::WeakFieldExceeded); }
+        if potential_ratio >= WEAK_FIELD_LIMIT {
+            return Err(SpawnError::WeakFieldExceeded);
+        }
 
         let id = self.next_id;
         self.next_id += 1;
         let particle = Particle::new(
             id,
-            spec.mass, spec.charge, spec.radius,
-            spec.r, spec.v, spec.spin,
+            spec.mass,
+            spec.charge,
+            spec.radius,
+            spec.r,
+            spec.v,
+            spec.spin,
             spec.allow_merger,
             self.history_capacity,
             self.t,
@@ -90,7 +108,12 @@ impl World {
     }
 
     pub fn remove(&mut self, id: u32) -> bool {
-        if let Some((i, _)) = self.particles.iter().enumerate().find(|(_, p)| p.id == id && p.alive) {
+        if let Some((i, _)) = self
+            .particles
+            .iter()
+            .enumerate()
+            .find(|(_, p)| p.id == id && p.alive)
+        {
             self.particles[i].alive = false;
             true
         } else {
@@ -129,7 +152,9 @@ impl World {
     /// Advance the simulation by `dt_total` physics seconds, in adaptive
     /// substeps no larger than `dt_max`.
     pub fn advance(&mut self, dt_total: f64, dt_max: f64) {
-        if dt_total <= 0.0 || !dt_total.is_finite() { return; }
+        if dt_total <= 0.0 || !dt_total.is_finite() {
+            return;
+        }
         let mut remaining = dt_total;
         let mut count = 0u32;
         let max_steps = 4096u32; // hard ceiling to keep one frame finite
@@ -163,11 +188,18 @@ impl World {
     }
 
     pub fn total_energy(&self) -> f64 {
-        self.particles.iter().filter(|p| p.alive).map(|p| p.energy()).sum()
+        self.particles
+            .iter()
+            .filter(|p| p.alive)
+            .map(|p| p.energy())
+            .sum()
     }
 
     pub fn total_momentum(&self) -> Vec3 {
-        self.particles.iter().filter(|p| p.alive).fold(Vec3::ZERO, |acc, p| acc + p.p)
+        self.particles
+            .iter()
+            .filter(|p| p.alive)
+            .fold(Vec3::ZERO, |acc, p| acc + p.p)
     }
 
     pub fn max_gamma(&self) -> f64 {
@@ -181,7 +213,9 @@ impl World {
     pub fn max_bg(&self) -> f64 {
         let mut best = 0.0_f64;
         for (i, p) in self.particles.iter().enumerate() {
-            if !p.alive { continue; }
+            if !p.alive {
+                continue;
+            }
             let f = total_fields_on(&self.particles, i, self.t);
             best = best.max(f.bg.norm());
         }

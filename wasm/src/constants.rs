@@ -7,7 +7,8 @@ pub const INV_C: f64 = 1.0 / C;
 pub const INV_C2: f64 = 1.0 / C2;
 
 pub const G: f64 = 6.674_30e-11;
-#[allow(dead_code)] pub const G_OVER_C2: f64 = G * INV_C2;
+#[allow(dead_code)]
+pub const G_OVER_C2: f64 = G * INV_C2;
 
 pub const EPS0: f64 = 8.854_187_812_8e-12;
 pub const MU0: f64 = 1.256_637_062_12e-6;

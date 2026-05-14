@@ -30,14 +30,20 @@ pub fn resolve(particles: &mut [Particle]) -> CollisionStats {
     // Single pass is enough for the typical case (sparse overlaps). Repeated
     // overlaps after one pair-resolve are rare and resolved on the next substep.
     for i in 0..particles.len() {
-        if !particles[i].alive { continue; }
+        if !particles[i].alive {
+            continue;
+        }
         for j in (i + 1)..particles.len() {
-            if !particles[j].alive { continue; }
+            if !particles[j].alive {
+                continue;
+            }
 
             let delta = particles[j].r - particles[i].r;
             let dist2 = delta.norm_sq();
             let r_sum = particles[i].radius + particles[j].radius;
-            if dist2 >= r_sum * r_sum { continue; }
+            if dist2 >= r_sum * r_sum {
+                continue;
+            }
 
             if particles[i].allow_merger && particles[j].allow_merger {
                 merge_pair(particles, i, j);
@@ -52,16 +58,13 @@ pub fn resolve(particles: &mut [Particle]) -> CollisionStats {
     CollisionStats { bounces, mergers }
 }
 
-fn bounce_pair(
-    particles: &mut [Particle],
-    i: usize,
-    j: usize,
-    delta: Vec3,
-    dist: f64,
-    r_sum: f64,
-) {
+fn bounce_pair(particles: &mut [Particle], i: usize, j: usize, delta: Vec3, dist: f64, r_sum: f64) {
     // n points from i to j.
-    let n = if dist > 0.0 { delta / dist } else { Vec3::new(1.0, 0.0, 0.0) };
+    let n = if dist > 0.0 {
+        delta / dist
+    } else {
+        Vec3::new(1.0, 0.0, 0.0)
+    };
 
     // First, separate them along n so they no longer overlap. We split the
     // penetration in inverse proportion to mass (lighter body moves more).
@@ -70,7 +73,7 @@ fn bounce_pair(
     let m_j = particles[j].mass.max(1.0e-300);
     let m_tot = m_i + m_j;
     let push_i = -n * (penetration * (m_j / m_tot));
-    let push_j =  n * (penetration * (m_i / m_tot));
+    let push_j = n * (penetration * (m_i / m_tot));
     particles[i].r += push_i;
     particles[j].r += push_j;
 
@@ -84,7 +87,9 @@ fn bounce_pair(
     let v_i = particles[i].velocity();
     let v_j = particles[j].velocity();
     let v_rel_n = (v_j - v_i).dot(n);
-    if v_rel_n >= 0.0 { return; } // already separating
+    if v_rel_n >= 0.0 {
+        return;
+    } // already separating
 
     let mu = (m_i * m_j) / m_tot;
     let jn = -2.0 * mu * v_rel_n;
@@ -98,7 +103,9 @@ fn merge_pair(particles: &mut [Particle], i: usize, j: usize) {
     let m_i = particles[i].mass;
     let m_j = particles[j].mass;
     let m_tot = m_i + m_j;
-    if m_tot <= 0.0 { return; }
+    if m_tot <= 0.0 {
+        return;
+    }
 
     let p_i = particles[i].p;
     let p_j = particles[j].p;

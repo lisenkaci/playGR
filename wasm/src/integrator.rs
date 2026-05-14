@@ -15,7 +15,7 @@
 // from F via relativistic_acceleration() so the Lienard-Wiechert evaluator
 // sees the correct retarded beta_dot.
 
-use crate::constants::{BETA_CAP, C, BETA_CAP_2};
+use crate::constants::{BETA_CAP, BETA_CAP_2, C};
 use crate::particle::{velocity_from_momentum, Particle};
 use crate::physics::{lorentz_force, relativistic_acceleration, total_fields_on, Fields};
 use crate::vec3::Vec3;
@@ -43,36 +43,35 @@ pub fn compute_all_forces(particles: &[Particle], t_now: f64) -> Vec<(Vec3, Fiel
 /// `forces_prev` must contain F_n for every particle (computed at the previous
 /// substep's end, or at simulation init for the first substep). On return, the
 /// same slot in `forces_prev` is overwritten with F_{n+1} for the next call.
-pub fn step(
-    particles: &mut [Particle],
-    forces_prev: &mut [(Vec3, Fields)],
-    t_now: f64,
-    dt: f64,
-) {
+pub fn step(particles: &mut [Particle], forces_prev: &mut [(Vec3, Fields)], t_now: f64, dt: f64) {
     let n = particles.len();
     debug_assert_eq!(forces_prev.len(), n);
 
     // Step 1: half-kick using F_n
     for i in 0..n {
-        if !particles[i].alive { continue; }
+        if !particles[i].alive {
+            continue;
+        }
         particles[i].snapshot_safe();
         let (f_n, _) = forces_prev[i];
         particles[i].p += f_n * (0.5 * dt);
     }
 
     // Step 2: drift, with soft cap on |v| at BETA_CAP * c
-    for i in 0..n {
-        if !particles[i].alive { continue; }
-        let mass = particles[i].mass;
-        let mut v = velocity_from_momentum(particles[i].p, mass);
+    for p in particles.iter_mut() {
+        if !p.alive {
+            continue;
+        }
+        let mass = p.mass;
+        let mut v = velocity_from_momentum(p.p, mass);
         let v2 = v.norm_sq();
         let v2_cap = BETA_CAP_2 * C * C;
         if v2 > v2_cap {
-            v = v * (v2_cap / v2).sqrt();
+            v *= (v2_cap / v2).sqrt();
             // Project momentum back to the capped velocity.
-            particles[i].p = crate::particle::momentum_from_velocity(v, mass);
+            p.p = crate::particle::momentum_from_velocity(v, mass);
         }
-        particles[i].r += v * dt;
+        p.r += v * dt;
     }
 
     // Step 3: push history entry at the new time, using the *previous* dv/dt as
@@ -80,10 +79,12 @@ pub fn step(
     // by future retarded-time lookups; using a_prev is fine because we update
     // it with the new value as soon as we recompute forces below.
     let t_new = t_now + dt;
-    for i in 0..n {
-        if !particles[i].alive { continue; }
-        let a_prev = particles[i].a_prev;
-        particles[i].push_history(t_new, a_prev);
+    for p in particles.iter_mut() {
+        if !p.alive {
+            continue;
+        }
+        let a_prev = p.a_prev;
+        p.push_history(t_new, a_prev);
     }
 
     // Step 4: recompute forces at the new state.
@@ -122,7 +123,9 @@ pub fn step(
 pub fn recommend_dt(particles: &[Particle], forces: &[(Vec3, Fields)], fallback: f64) -> f64 {
     let mut dt = fallback;
     for (i, p) in particles.iter().enumerate() {
-        if !p.alive { continue; }
+        if !p.alive {
+            continue;
+        }
         let (f, fields) = forces[i];
         let mass = p.mass.max(1.0e-300);
         let a_norm = (f * (1.0 / mass)).norm();
@@ -144,4 +147,5 @@ pub fn recommend_dt(particles: &[Particle], forces: &[(Vec3, Fields)], fallback:
     dt.max(1.0e-18)
 }
 
-#[allow(dead_code)] const _BETA_CAP_KEEP: f64 = BETA_CAP;
+#[allow(dead_code)]
+const _BETA_CAP_KEEP: f64 = BETA_CAP;

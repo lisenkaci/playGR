@@ -55,11 +55,7 @@ impl Fields {
 /// where R(t) = |r_obs - r_src(t)|. The derivative is
 ///     f'(t_ret) = c * (1 - n_hat . beta_src) = c * kappa
 /// so the update is t_ret <- t_ret - f / (c * kappa).
-pub fn find_retarded_state(
-    r_obs: Vec3,
-    t_now: f64,
-    src_history: &RingBuffer,
-) -> Option<State> {
+pub fn find_retarded_state(r_obs: Vec3, t_now: f64, src_history: &RingBuffer) -> Option<State> {
     let newest = src_history.newest()?;
 
     // Initial guess: pretend the source is static at its current position.
@@ -77,7 +73,9 @@ pub fn find_retarded_state(
         let kappa = (1.0 - n_dot_beta).max(1.0e-6); // numerical floor
         let step = f / (C * kappa);
         t_ret -= step;
-        if step.abs() < 1.0e-15 * t_now.abs().max(1.0) { break; }
+        if step.abs() < 1.0e-15 * t_now.abs().max(1.0) {
+            break;
+        }
     }
 
     src_history.sample_at(t_ret)
@@ -143,19 +141,22 @@ pub fn fields_from_source(
     let dip_g = (n * (3.0 * src_spin.dot(n))) - src_spin;
     let b_g = b_g + dip_g * (K_BG / r3);
 
-    Fields { e: e_em, b: b_em, eg: e_g, bg: b_g }
+    Fields {
+        e: e_em,
+        b: b_em,
+        eg: e_g,
+        bg: b_g,
+    }
 }
 
 /// Sum all retarded-source fields acting on observer particle `obs_idx`.
-pub fn total_fields_on(
-    particles: &[Particle],
-    obs_idx: usize,
-    t_now: f64,
-) -> Fields {
+pub fn total_fields_on(particles: &[Particle], obs_idx: usize, t_now: f64) -> Fields {
     let obs = &particles[obs_idx];
     let mut sum = Fields::default();
     for (j, src) in particles.iter().enumerate() {
-        if j == obs_idx || !src.alive { continue; }
+        if j == obs_idx || !src.alive {
+            continue;
+        }
         if let Some(s_ret) = find_retarded_state(obs.r, t_now, &src.history) {
             let f = fields_from_source(obs.r, &s_ret, src.mass, src.charge, src.spin);
             sum.add(f);
@@ -182,7 +183,9 @@ pub fn lorentz_force(particle: &Particle, fields: Fields) -> Vec3 {
 /// inertia parallel to v while leaving perpendicular response as F_perp/(gamma m).
 #[inline]
 pub fn relativistic_acceleration(force: Vec3, v: Vec3, gamma: f64, mass: f64) -> Vec3 {
-    if mass <= 0.0 { return Vec3::ZERO; }
+    if mass <= 0.0 {
+        return Vec3::ZERO;
+    }
     let v_dot_f = v.dot(force);
     let f_eff = force - v * (v_dot_f * INV_C2);
     f_eff * (1.0 / (gamma * mass))

@@ -26,15 +26,29 @@ impl RingBuffer {
         }
     }
 
-    #[allow(dead_code)] #[inline] pub fn capacity(&self) -> usize { self.cap }
-    #[allow(dead_code)] #[inline] pub fn len(&self) -> usize { self.len }
-    #[allow(dead_code)] #[inline] pub fn is_empty(&self) -> bool { self.len == 0 }
+    #[allow(dead_code)]
+    #[inline]
+    pub fn capacity(&self) -> usize {
+        self.cap
+    }
+    #[allow(dead_code)]
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.len
+    }
+    #[allow(dead_code)]
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
 
     #[inline]
     pub fn push(&mut self, s: State) {
         self.buf[self.head] = s;
         self.head = (self.head + 1) % self.cap;
-        if self.len < self.cap { self.len += 1; }
+        if self.len < self.cap {
+            self.len += 1;
+        }
     }
 
     /// Discard every stored entry. Used when a particle is teleported, so
@@ -47,14 +61,18 @@ impl RingBuffer {
 
     #[inline]
     pub fn newest(&self) -> Option<&State> {
-        if self.len == 0 { return None; }
+        if self.len == 0 {
+            return None;
+        }
         let i = (self.head + self.cap - 1) % self.cap;
         Some(&self.buf[i])
     }
 
     #[inline]
     pub fn oldest(&self) -> Option<&State> {
-        if self.len == 0 { return None; }
+        if self.len == 0 {
+            return None;
+        }
         let i = (self.head + self.cap - self.len) % self.cap;
         Some(&self.buf[i])
     }
@@ -62,7 +80,9 @@ impl RingBuffer {
     /// Index in time order: 0 = oldest, len-1 = newest.
     #[inline]
     pub fn get(&self, age_index: usize) -> Option<&State> {
-        if age_index >= self.len { return None; }
+        if age_index >= self.len {
+            return None;
+        }
         let oldest = (self.head + self.cap - self.len) % self.cap;
         let i = (oldest + age_index) % self.cap;
         Some(&self.buf[i])
@@ -73,14 +93,22 @@ impl RingBuffer {
     /// `t` is past the most recent frame, the oldest state if `t` predates the
     /// buffer, or `None` if the buffer is empty.
     pub fn sample_at(&self, t: f64) -> Option<State> {
-        if self.len == 0 { return None; }
-        if self.len == 1 { return self.newest().copied(); }
+        if self.len == 0 {
+            return None;
+        }
+        if self.len == 1 {
+            return self.newest().copied();
+        }
 
         let oldest_t = self.oldest().unwrap().t;
         let newest_t = self.newest().unwrap().t;
 
-        if t <= oldest_t { return self.oldest().copied(); }
-        if t >= newest_t { return self.newest().copied(); }
+        if t <= oldest_t {
+            return self.oldest().copied();
+        }
+        if t >= newest_t {
+            return self.newest().copied();
+        }
 
         // Binary search the age index for `t`. Frames are stored in strictly
         // increasing time order, so a binary search by age works.
@@ -89,7 +117,11 @@ impl RingBuffer {
         while hi - lo > 1 {
             let mid = (lo + hi) / 2;
             let tm = self.get(mid).unwrap().t;
-            if tm <= t { lo = mid; } else { hi = mid; }
+            if tm <= t {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
         }
 
         let a = self.get(lo).unwrap();
@@ -107,7 +139,12 @@ mod tests {
     use crate::vec3::Vec3;
 
     fn s_at(t: f64, x: f64) -> State {
-        State { t, r: Vec3::new(x, 0.0, 0.0), v: Vec3::ZERO, a: Vec3::ZERO }
+        State {
+            t,
+            r: Vec3::new(x, 0.0, 0.0),
+            v: Vec3::ZERO,
+            a: Vec3::ZERO,
+        }
     }
 
     #[test]

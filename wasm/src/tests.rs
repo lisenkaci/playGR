@@ -7,8 +7,7 @@
 use crate::constants::{C, EPS0, G, K_E};
 use crate::particle::{velocity_from_momentum, Particle};
 use crate::physics::{
-    fields_from_source, find_retarded_state, lorentz_force, newtonian_potential_at,
-    total_fields_on,
+    fields_from_source, find_retarded_state, lorentz_force, newtonian_potential_at, total_fields_on,
 };
 use crate::vec3::Vec3;
 use crate::world::{SpawnError, SpawnSpec, World};
@@ -33,25 +32,39 @@ fn coulomb_static() {
     let q = 1.0e-6;
     let r = 1.0;
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: q, radius: 0.01,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: 1.0,
+        charge: q,
+        radius: 0.01,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     // Sample the field at (r, 0, 0). With one source, total_fields_on requires
     // an observer particle; spawn a tiny test charge there with zero spin/mass
     // -- but mass must be > 0 to satisfy the guard.  We use a test mass of 1 kg
     // so we can also probe the force, but the *field* is independent of it.
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: 0.0, radius: 0.01,
+        mass: 1.0,
+        charge: 0.0,
+        radius: 0.01,
         r: Vec3::new(r, 0.0, 0.0),
-        v: Vec3::ZERO, spin: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     let fields = total_fields_on(&w.particles, 1, w.t);
     let expected_e = K_E * q / (r * r);
-    assert!(approx(fields.e.x, expected_e, 1.0e-12), "Ex = {}, want {}", fields.e.x, expected_e);
+    assert!(
+        approx(fields.e.x, expected_e, 1.0e-12),
+        "Ex = {}, want {}",
+        fields.e.x,
+        expected_e
+    );
     assert!(fields.e.y.abs() < 1.0e-20);
     assert!(fields.e.z.abs() < 1.0e-20);
     assert!(fields.b.norm() < 1.0e-25);
@@ -65,20 +78,33 @@ fn coulomb_static() {
 fn like_charges_repel() {
     let mut w = World::new(8, 1.0e-6);
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: 1.0e-6, radius: 0.01,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: 1.0,
+        charge: 1.0e-6,
+        radius: 0.01,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: 1.0e-6, radius: 0.01,
+        mass: 1.0,
+        charge: 1.0e-6,
+        radius: 0.01,
         r: Vec3::new(1.0, 0.0, 0.0),
-        v: Vec3::ZERO, spin: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     let fields_on_1 = total_fields_on(&w.particles, 1, w.t);
     let f = lorentz_force(&w.particles[1], fields_on_1);
-    assert!(f.x > 0.0, "force should push +x particle further along +x, got {:?}", f);
+    assert!(
+        f.x > 0.0,
+        "force should push +x particle further along +x, got {:?}",
+        f
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -89,23 +115,37 @@ fn masses_attract() {
     let mut w = World::new(8, 1.0e-6);
     let m_src = 1.0e20;
     w.spawn(SpawnSpec {
-        mass: m_src, charge: 0.0, radius: 1.0e3,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: m_src,
+        charge: 0.0,
+        radius: 1.0e3,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     let probe_r = Vec3::new(1.0e6, 0.0, 0.0);
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: 0.0, radius: 0.01,
-        r: probe_r, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: 1.0,
+        charge: 0.0,
+        radius: 0.01,
+        r: probe_r,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     let fields = total_fields_on(&w.particles, 1, w.t);
     // E_g should point in -x (toward the source). For a static source the
     // force on the test mass is m * E_g, which should be -G m_src m / r^2 along x.
     let expected_eg_x = -G * m_src / (probe_r.x * probe_r.x);
-    assert!(approx(fields.eg.x, expected_eg_x, 1.0e-9),
-            "E_g.x = {}, expected {}", fields.eg.x, expected_eg_x);
+    assert!(
+        approx(fields.eg.x, expected_eg_x, 1.0e-9),
+        "E_g.x = {}, expected {}",
+        fields.eg.x,
+        expected_eg_x
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -118,25 +158,38 @@ fn coulomb_force_closed_form() {
     let q2 = -3.0e-6;
     let dist = 0.5;
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: q1, radius: 0.001,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: 1.0,
+        charge: q1,
+        radius: 0.001,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: q2, radius: 0.001,
+        mass: 1.0,
+        charge: q2,
+        radius: 0.001,
         r: Vec3::new(dist, 0.0, 0.0),
-        v: Vec3::ZERO, spin: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     let fields = total_fields_on(&w.particles, 1, w.t);
     let f = lorentz_force(&w.particles[1], fields);
     // The test masses are 1 kg each, so their mutual gravity also contributes
     // -G m1 m2 / r^2 (attractive, same sign as the opposite-charge Coulomb force).
     let expected_fx = K_E * q1 * q2 / (dist * dist)
-                    - G * w.particles[0].mass * w.particles[1].mass / (dist * dist);
-    assert!(approx(f.x, expected_fx, 1.0e-12),
-            "Fx = {}, expected {}", f.x, expected_fx);
+        - G * w.particles[0].mass * w.particles[1].mass / (dist * dist);
+    assert!(
+        approx(f.x, expected_fx, 1.0e-12),
+        "Fx = {}, expected {}",
+        f.x,
+        expected_fx
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -146,10 +199,15 @@ fn coulomb_force_closed_form() {
 fn retarded_time_static_source() {
     let mut w = World::new(8, 1.0e-6);
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: 1.0, radius: 0.01,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: 1.0,
+        charge: 1.0,
+        radius: 0.01,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     // Advance time without movement by pushing additional history entries.
     for i in 1..6 {
         let t = i as f64 * 1.0e-6;
@@ -160,8 +218,12 @@ fn retarded_time_static_source() {
     let probe = Vec3::new(300.0, 0.0, 0.0);
     let s = find_retarded_state(probe, w.t, &w.particles[0].history).unwrap();
     let expected_t = w.t - 300.0 / C;
-    assert!(approx(s.t, expected_t, 1.0e-9),
-            "retarded t = {}, expected {}", s.t, expected_t);
+    assert!(
+        approx(s.t, expected_t, 1.0e-9),
+        "retarded t = {}, expected {}",
+        s.t,
+        expected_t
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -177,15 +239,21 @@ fn em_dipole_axial_field() {
     let r = 2.0;
     let src_state = crate::particle::State {
         t: 0.0,
-        r: Vec3::ZERO, v: Vec3::ZERO, a: Vec3::ZERO,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        a: Vec3::ZERO,
     };
     let probe = Vec3::new(0.0, 0.0, r);
     let f = fields_from_source(probe, &src_state, m, q, Vec3::new(0.0, 0.0, s_mag));
     // Velocity-field part is zero (static source); only dipole remains.
     let mu0 = crate::constants::MU0;
     let expected = (mu0 / (4.0 * PI)) * 2.0 * mu / (r * r * r);
-    assert!(approx(f.b.z, expected, 1.0e-12),
-            "Bz = {}, expected {}", f.b.z, expected);
+    assert!(
+        approx(f.b.z, expected, 1.0e-12),
+        "Bz = {}, expected {}",
+        f.b.z,
+        expected
+    );
     assert!(f.b.x.abs() + f.b.y.abs() < 1.0e-18);
 }
 
@@ -203,18 +271,28 @@ fn gem_dipole_axial_field() {
     let m = 1.0e30;
     let s_mag = 1.0e40; // big enough that f64 can see the result
     let r = 1.0e6;
-    let src_state = crate::particle::State { t: 0.0, r: Vec3::ZERO, v: Vec3::ZERO, a: Vec3::ZERO };
+    let src_state = crate::particle::State {
+        t: 0.0,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        a: Vec3::ZERO,
+    };
     let f = fields_from_source(
         Vec3::new(0.0, 0.0, r),
         &src_state,
-        m, 0.0,
+        m,
+        0.0,
         Vec3::new(0.0, 0.0, s_mag),
     );
     // Shape factor on +z axis: [3 (S.n) n - S] = 3 S z_hat - S z_hat = 2 S z_hat.
     // With K_BG = -G/(2 c^2): Bg.z = -G * s_mag / (c^2 r^3).
     let expected = -G * s_mag / (C * C * r * r * r);
-    assert!(approx(f.bg.z, expected, 1.0e-10),
-            "Bg.z = {}, expected {}", f.bg.z, expected);
+    assert!(
+        approx(f.bg.z, expected, 1.0e-10),
+        "Bg.z = {}, expected {}",
+        f.bg.z,
+        expected
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -226,8 +304,12 @@ fn weak_field_guard_rejects_black_hole() {
     // Schwarzschild radius for the sun is ~3 km, so 1 solar mass in a 1 km
     // sphere should be well past the 0.05 limit.
     let result = w.spawn(SpawnSpec {
-        mass: 1.989e30, charge: 0.0, radius: 1.0e3,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: 1.989e30,
+        charge: 0.0,
+        radius: 1.0e3,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
     });
     assert!(matches!(result, Err(SpawnError::WeakFieldExceeded)));
@@ -240,8 +322,12 @@ fn weak_field_guard_rejects_black_hole() {
 fn superluminal_guard() {
     let mut w = World::new(8, 1.0e-6);
     let result = w.spawn(SpawnSpec {
-        mass: 1.0, charge: 0.0, radius: 0.1,
-        r: Vec3::ZERO, v: Vec3::new(C, 0.0, 0.0), spin: Vec3::ZERO,
+        mass: 1.0,
+        charge: 0.0,
+        radius: 0.1,
+        r: Vec3::ZERO,
+        v: Vec3::new(C, 0.0, 0.0),
+        spin: Vec3::ZERO,
         allow_merger: false,
     });
     assert!(matches!(result, Err(SpawnError::SuperluminalVelocity)));
@@ -276,17 +362,25 @@ fn kepler_energy_conservation() {
     let v_orbit = 0.5 * (G * (2.0 * m) / (separation / 2.0)).sqrt();
 
     w.spawn(SpawnSpec {
-        mass: m, charge: 0.0, radius: 1.0e3,
+        mass: m,
+        charge: 0.0,
+        radius: 1.0e3,
         r: Vec3::new(-separation / 2.0, 0.0, 0.0),
         v: Vec3::new(0.0, -v_orbit, 0.0),
-        spin: Vec3::ZERO, allow_merger: false,
-    }).unwrap();
+        spin: Vec3::ZERO,
+        allow_merger: false,
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: m, charge: 0.0, radius: 1.0e3,
+        mass: m,
+        charge: 0.0,
+        radius: 1.0e3,
         r: Vec3::new(separation / 2.0, 0.0, 0.0),
         v: Vec3::new(0.0, v_orbit, 0.0),
-        spin: Vec3::ZERO, allow_merger: false,
-    }).unwrap();
+        spin: Vec3::ZERO,
+        allow_merger: false,
+    })
+    .unwrap();
 
     let e0 = w.total_energy();
     let p0 = w.total_momentum();
@@ -320,23 +414,36 @@ fn newtonian_acceleration_magnitude() {
     let m_src = 1.0e24;
     let r = 1.0e6;
     w.spawn(SpawnSpec {
-        mass: m_src, charge: 0.0, radius: 1.0e3,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: m_src,
+        charge: 0.0,
+        radius: 1.0e3,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: 0.0, radius: 0.01,
+        mass: 1.0,
+        charge: 0.0,
+        radius: 0.01,
         r: Vec3::new(r, 0.0, 0.0),
-        v: Vec3::ZERO, spin: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     let fields = total_fields_on(&w.particles, 1, w.t);
     let f = lorentz_force(&w.particles[1], fields);
     let a_x = f.x / w.particles[1].mass; // Newtonian, v=0
     let expected = -G * m_src / (r * r);
-    assert!(approx(a_x, expected, 1.0e-9),
-            "a_x = {}, expected {}", a_x, expected);
+    assert!(
+        approx(a_x, expected, 1.0e-9),
+        "a_x = {}, expected {}",
+        a_x,
+        expected
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -348,24 +455,37 @@ fn newtonian_potential_sum() {
     let m1 = 1.0e22;
     let m2 = 2.0e22;
     w.spawn(SpawnSpec {
-        mass: m1, charge: 0.0, radius: 1.0e3,
+        mass: m1,
+        charge: 0.0,
+        radius: 1.0e3,
         r: Vec3::new(-1.0e6, 0.0, 0.0),
-        v: Vec3::ZERO, spin: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: m2, charge: 0.0, radius: 1.0e3,
+        mass: m2,
+        charge: 0.0,
+        radius: 1.0e3,
         r: Vec3::new(1.0e6, 0.0, 0.0),
-        v: Vec3::ZERO, spin: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     let probe = Vec3::new(0.0, 1.0e6, 0.0);
     let phi = newtonian_potential_at(&w.particles, probe);
     let r1 = (probe - w.particles[0].r).norm();
     let r2 = (probe - w.particles[1].r).norm();
     let expected = -G * m1 / r1 - G * m2 / r2;
-    assert!(approx(phi, expected, 1.0e-12), "phi {} vs {}", phi, expected);
+    assert!(
+        approx(phi, expected, 1.0e-12),
+        "phi {} vs {}",
+        phi,
+        expected
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -376,17 +496,25 @@ fn newtonian_potential_sum() {
 fn elastic_bounce_reverses_velocity() {
     let mut w = World::new(8, 1.0e-3);
     w.spawn(SpawnSpec {
-        mass: 1.0e10, charge: 0.0, radius: 1.0,
+        mass: 1.0e10,
+        charge: 0.0,
+        radius: 1.0,
         r: Vec3::new(-3.0, 0.0, 0.0),
         v: Vec3::new(100.0, 0.0, 0.0),
-        spin: Vec3::ZERO, allow_merger: false,
-    }).unwrap();
+        spin: Vec3::ZERO,
+        allow_merger: false,
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: 1.0e10, charge: 0.0, radius: 1.0,
+        mass: 1.0e10,
+        charge: 0.0,
+        radius: 1.0,
         r: Vec3::new(3.0, 0.0, 0.0),
         v: Vec3::new(-100.0, 0.0, 0.0),
-        spin: Vec3::ZERO, allow_merger: false,
-    }).unwrap();
+        spin: Vec3::ZERO,
+        allow_merger: false,
+    })
+    .unwrap();
 
     // Walk them into contact with small substeps. Self-gravity is negligible.
     w.advance(0.04, 1.0e-3);
@@ -394,8 +522,12 @@ fn elastic_bounce_reverses_velocity() {
     let v0 = velocity_from_momentum(w.particles[0].p, w.particles[0].mass);
     let v1 = velocity_from_momentum(w.particles[1].p, w.particles[1].mass);
     // After bounce, particle 0 should be moving in -x and particle 1 in +x.
-    assert!(v0.x < 0.0 && v1.x > 0.0,
-            "post-bounce: v0={:?}, v1={:?}", v0, v1);
+    assert!(
+        v0.x < 0.0 && v1.x > 0.0,
+        "post-bounce: v0={:?}, v1={:?}",
+        v0,
+        v1
+    );
     // Energy conserved (within drift bound).
     let v0n = v0.norm();
     let v1n = v1.norm();
@@ -416,27 +548,39 @@ fn frame_dragging_equatorial_orientation() {
     let m = 1.0e25;
     let s = Vec3::new(0.0, 0.0, 1.0e35);
     w.spawn(SpawnSpec {
-        mass: m, charge: 0.0, radius: 1.0e3,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: s,
+        mass: m,
+        charge: 0.0,
+        radius: 1.0e3,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: s,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     // Probe particle on the equator at +x, orbiting prograde (+y).
     let r_probe = 1.0e6;
     let v_orb = 100.0;
     w.spawn(SpawnSpec {
-        mass: 1.0, charge: 0.0, radius: 0.01,
+        mass: 1.0,
+        charge: 0.0,
+        radius: 0.01,
         r: Vec3::new(r_probe, 0.0, 0.0),
         v: Vec3::new(0.0, v_orb, 0.0),
         spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
     let f = total_fields_on(&w.particles, 1, w.t);
     // Wikipedia closed-form: at the equator (S . r_hat = 0) the shape
     // factor [3 (S.n) n - S] reduces to -S, and with K_BG = -G/(2 c^2)
     // we get  B_g.z = (G / (2 c^2)) * S_z / r^3.
     let expected_bg_z = G * s.z / (2.0 * C * C * r_probe.powi(3));
-    assert!(approx(f.bg.z, expected_bg_z, 1.0e-9),
-            "B_g.z at equator = {}, expected {}", f.bg.z, expected_bg_z);
+    assert!(
+        approx(f.bg.z, expected_bg_z, 1.0e-9),
+        "B_g.z at equator = {}, expected {}",
+        f.bg.z,
+        expected_bg_z
+    );
     assert!(f.bg.x.abs() < 1.0e-30 && f.bg.y.abs() < 1.0e-30);
 
     // Force on the prograde-orbiting probe: v x B_g = (0,v,0) x (0,0,Bgz)
@@ -446,8 +590,11 @@ fn frame_dragging_equatorial_orientation() {
     // gravitational term dominates by ~v_orb^2/c^2 vs (G/r) typically, but
     // here we just verify the GEM contribution has the right sign.
     let f_gem_radial = 4.0 * w.particles[1].mass * v_orb * f.bg.z;
-    assert!(f_gem_radial > 0.0,
-            "GEM-only radial force should be outward, got {}", f_gem_radial);
+    assert!(
+        f_gem_radial > 0.0,
+        "GEM-only radial force should be outward, got {}",
+        f_gem_radial
+    );
     // And the total force is still net inward (gravity wins).
     assert!(force.x < 0.0);
 }
@@ -464,39 +611,64 @@ fn newtonian_potential_inside_uniform_sphere() {
     let m = 5.0e23;
     let radius = 1.0e6;
     w.spawn(SpawnSpec {
-        mass: m, charge: 0.0, radius,
-        r: Vec3::ZERO, v: Vec3::ZERO, spin: Vec3::ZERO,
+        mass: m,
+        charge: 0.0,
+        radius,
+        r: Vec3::ZERO,
+        v: Vec3::ZERO,
+        spin: Vec3::ZERO,
         allow_merger: false,
-    }).unwrap();
+    })
+    .unwrap();
 
     // Probe at the centre, at half-radius, and at the surface.
-    let phi_centre  = newtonian_potential_at(&w.particles, Vec3::ZERO);
-    let phi_half    = newtonian_potential_at(&w.particles, Vec3::new(0.5 * radius, 0.0, 0.0));
+    let phi_centre = newtonian_potential_at(&w.particles, Vec3::ZERO);
+    let phi_half = newtonian_potential_at(&w.particles, Vec3::new(0.5 * radius, 0.0, 0.0));
     let phi_surface = newtonian_potential_at(&w.particles, Vec3::new(radius, 0.0, 0.0));
     let phi_outside = newtonian_potential_at(&w.particles, Vec3::new(2.0 * radius, 0.0, 0.0));
 
     // Closed-form references.
-    let phi_centre_ref  = -G * m / (2.0 * radius) * 3.0;
-    let phi_half_ref    = -G * m / (2.0 * radius) * (3.0 - 0.25);
+    let phi_centre_ref = -G * m / (2.0 * radius) * 3.0;
+    let phi_half_ref = -G * m / (2.0 * radius) * (3.0 - 0.25);
     let phi_surface_ref = -G * m / radius;
     let phi_outside_ref = -G * m / (2.0 * radius);
 
-    assert!(approx(phi_centre,  phi_centre_ref,  1.0e-12),
-            "centre {} vs {}",  phi_centre,  phi_centre_ref);
-    assert!(approx(phi_half,    phi_half_ref,    1.0e-12),
-            "half-r {} vs {}",  phi_half,    phi_half_ref);
-    assert!(approx(phi_surface, phi_surface_ref, 1.0e-12),
-            "surface {} vs {}", phi_surface, phi_surface_ref);
-    assert!(approx(phi_outside, phi_outside_ref, 1.0e-12),
-            "outside {} vs {}", phi_outside, phi_outside_ref);
+    assert!(
+        approx(phi_centre, phi_centre_ref, 1.0e-12),
+        "centre {} vs {}",
+        phi_centre,
+        phi_centre_ref
+    );
+    assert!(
+        approx(phi_half, phi_half_ref, 1.0e-12),
+        "half-r {} vs {}",
+        phi_half,
+        phi_half_ref
+    );
+    assert!(
+        approx(phi_surface, phi_surface_ref, 1.0e-12),
+        "surface {} vs {}",
+        phi_surface,
+        phi_surface_ref
+    );
+    assert!(
+        approx(phi_outside, phi_outside_ref, 1.0e-12),
+        "outside {} vs {}",
+        phi_outside,
+        phi_outside_ref
+    );
 
     // Continuity at the surface: -GM/R from both sides.
-    let phi_just_inside  = newtonian_potential_at(&w.particles,
-        Vec3::new(radius * 0.999_999, 0.0, 0.0));
-    let phi_just_outside = newtonian_potential_at(&w.particles,
-        Vec3::new(radius * 1.000_001, 0.0, 0.0));
-    assert!((phi_just_inside - phi_just_outside).abs() / phi_surface.abs() < 1.0e-5,
-            "potential not C^0 at r=R: in={} out={}", phi_just_inside, phi_just_outside);
+    let phi_just_inside =
+        newtonian_potential_at(&w.particles, Vec3::new(radius * 0.999_999, 0.0, 0.0));
+    let phi_just_outside =
+        newtonian_potential_at(&w.particles, Vec3::new(radius * 1.000_001, 0.0, 0.0));
+    assert!(
+        (phi_just_inside - phi_just_outside).abs() / phi_surface.abs() < 1.0e-5,
+        "potential not C^0 at r=R: in={} out={}",
+        phi_just_inside,
+        phi_just_outside
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -515,22 +687,32 @@ fn merger_conserves_linear_momentum_and_charge() {
     let m2 = 5.0e22;
     let q1 = 1.0e-3;
     let q2 = -4.0e-3;
-    let v1 = Vec3::new( 100.0,  20.0, -10.0);
-    let v2 = Vec3::new(-50.0,  -40.0,  60.0);
+    let v1 = Vec3::new(100.0, 20.0, -10.0);
+    let v2 = Vec3::new(-50.0, -40.0, 60.0);
     let r1 = Vec3::new(-0.5e3, 0.0, 0.0);
-    let r2 = Vec3::new( 0.5e3, 0.0, 0.0);
+    let r2 = Vec3::new(0.5e3, 0.0, 0.0);
     let radius = 1.0e3; // overlap with the other body of equal radius
 
     w.spawn(SpawnSpec {
-        mass: m1, charge: q1, radius, r: r1, v: v1,
+        mass: m1,
+        charge: q1,
+        radius,
+        r: r1,
+        v: v1,
         spin: Vec3::new(1.0e30, 2.0e30, -3.0e30),
         allow_merger: true,
-    }).unwrap();
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: m2, charge: q2, radius, r: r2, v: v2,
+        mass: m2,
+        charge: q2,
+        radius,
+        r: r2,
+        v: v2,
         spin: Vec3::new(-2.0e30, 0.5e30, 4.0e30),
         allow_merger: true,
-    }).unwrap();
+    })
+    .unwrap();
 
     let p_before = w.particles[0].p + w.particles[1].p;
     let q_before = w.particles[0].charge + w.particles[1].charge;
@@ -549,8 +731,18 @@ fn merger_conserves_linear_momentum_and_charge() {
 
     let dp = (p_after - p_before).norm() / p_before.norm().max(1.0);
     assert!(dp < 1.0e-12, "linear momentum drift {}", dp);
-    assert!(approx(q_after, q_before, 1.0e-12), "charge: {} vs {}", q_after, q_before);
-    assert!(approx(m_after, m_before, 1.0e-12), "mass:   {} vs {}", m_after, m_before);
+    assert!(
+        approx(q_after, q_before, 1.0e-12),
+        "charge: {} vs {}",
+        q_after,
+        q_before
+    );
+    assert!(
+        approx(m_after, m_before, 1.0e-12),
+        "mass:   {} vs {}",
+        m_after,
+        m_before
+    );
 }
 
 #[test]
@@ -558,26 +750,37 @@ fn merger_conserves_total_angular_momentum() {
     let mut w = World::new(8, 1.0e-3);
     let m1 = 3.0e22;
     let m2 = 5.0e22;
-    let v1 = Vec3::new( 0.0,  150.0, 0.0);
-    let v2 = Vec3::new( 0.0, -100.0, 0.0);
+    let v1 = Vec3::new(0.0, 150.0, 0.0);
+    let v2 = Vec3::new(0.0, -100.0, 0.0);
     let r1 = Vec3::new(-0.5e3, 0.0, 0.0);
-    let r2 = Vec3::new( 0.5e3, 0.0, 0.0);
+    let r2 = Vec3::new(0.5e3, 0.0, 0.0);
     let radius = 1.0e3;
-    let s1 = Vec3::new(1.0e30,  2.0e30, -3.0e30);
+    let s1 = Vec3::new(1.0e30, 2.0e30, -3.0e30);
     let s2 = Vec3::new(-2.0e30, 0.5e30, 4.0e30);
 
     w.spawn(SpawnSpec {
-        mass: m1, charge: 0.0, radius, r: r1, v: v1, spin: s1,
+        mass: m1,
+        charge: 0.0,
+        radius,
+        r: r1,
+        v: v1,
+        spin: s1,
         allow_merger: true,
-    }).unwrap();
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: m2, charge: 0.0, radius, r: r2, v: v2, spin: s2,
+        mass: m2,
+        charge: 0.0,
+        radius,
+        r: r2,
+        v: v2,
+        spin: s2,
         allow_merger: true,
-    }).unwrap();
+    })
+    .unwrap();
 
     let l_orbit_before =
-        w.particles[0].r.cross(w.particles[0].p) +
-        w.particles[1].r.cross(w.particles[1].p);
+        w.particles[0].r.cross(w.particles[0].p) + w.particles[1].r.cross(w.particles[1].p);
     let l_total_before = l_orbit_before + s1 + s2;
 
     let stats = crate::collisions::resolve(&mut w.particles);
@@ -588,9 +791,13 @@ fn merger_conserves_total_angular_momentum() {
     let l_total_after = p.r.cross(p.p) + p.spin;
 
     let dl = (l_total_after - l_total_before).norm() / l_total_before.norm().max(1.0);
-    assert!(dl < 1.0e-9,
-            "angular momentum drift {} (before {:?}, after {:?})",
-            dl, l_total_before, l_total_after);
+    assert!(
+        dl < 1.0e-9,
+        "angular momentum drift {} (before {:?}, after {:?})",
+        dl,
+        l_total_before,
+        l_total_after
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -606,31 +813,54 @@ fn bounce_conserves_linear_momentum_and_energy() {
     let radius = 1.0;
     // Position the bodies so they already overlap; resolve() will fire.
     w.spawn(SpawnSpec {
-        mass: m, charge: 0.0, radius,
+        mass: m,
+        charge: 0.0,
+        radius,
         r: Vec3::new(-0.5, 0.0, 0.0),
-        v: Vec3::new( 80.0, 0.0, 0.0),
-        spin: Vec3::ZERO, allow_merger: false,
-    }).unwrap();
+        v: Vec3::new(80.0, 0.0, 0.0),
+        spin: Vec3::ZERO,
+        allow_merger: false,
+    })
+    .unwrap();
     w.spawn(SpawnSpec {
-        mass: m, charge: 0.0, radius,
-        r: Vec3::new( 0.5, 0.0, 0.0),
+        mass: m,
+        charge: 0.0,
+        radius,
+        r: Vec3::new(0.5, 0.0, 0.0),
         v: Vec3::new(-80.0, 0.0, 0.0),
-        spin: Vec3::ZERO, allow_merger: false,
-    }).unwrap();
+        spin: Vec3::ZERO,
+        allow_merger: false,
+    })
+    .unwrap();
 
     let p_before = w.particles[0].p + w.particles[1].p;
-    let e_before: f64 = w.particles.iter().filter(|p| p.alive).map(|p| p.energy()).sum();
+    let e_before: f64 = w
+        .particles
+        .iter()
+        .filter(|p| p.alive)
+        .map(|p| p.energy())
+        .sum();
 
     let stats = crate::collisions::resolve(&mut w.particles);
     assert_eq!(stats.bounces, 1);
 
     let p_after = w.particles[0].p + w.particles[1].p;
-    let e_after: f64 = w.particles.iter().filter(|p| p.alive).map(|p| p.energy()).sum();
+    let e_after: f64 = w
+        .particles
+        .iter()
+        .filter(|p| p.alive)
+        .map(|p| p.energy())
+        .sum();
 
     // Total momentum: zero before, zero after, exactly.
     let dp = (p_after - p_before).norm();
-    assert!(dp < 1.0e-6, "linear momentum drift {} (before {:?}, after {:?})",
-            dp, p_before, p_after);
+    assert!(
+        dp < 1.0e-6,
+        "linear momentum drift {} (before {:?}, after {:?})",
+        dp,
+        p_before,
+        p_after
+    );
     // Energy is conserved to (v/c)^4-ish precision for this non-relativistic
     // bounce.
     let de = (e_after - e_before).abs() / e_before.abs();
@@ -640,7 +870,12 @@ fn bounce_conserves_linear_momentum_and_energy() {
     // *reversed* in sign and equal in magnitude.
     let v0 = velocity_from_momentum(w.particles[0].p, w.particles[0].mass);
     let v1 = velocity_from_momentum(w.particles[1].p, w.particles[1].mass);
-    assert!(v0.x < 0.0 && v1.x > 0.0, "velocities not reversed: {:?} {:?}", v0, v1);
+    assert!(
+        v0.x < 0.0 && v1.x > 0.0,
+        "velocities not reversed: {:?} {:?}",
+        v0,
+        v1
+    );
     assert!(approx(v0.norm(), 80.0, 1.0e-9));
     assert!(approx(v1.norm(), 80.0, 1.0e-9));
 }

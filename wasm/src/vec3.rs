@@ -9,11 +9,21 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    pub const ZERO: Vec3 = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
+    pub const ZERO: Vec3 = Vec3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
 
-    #[inline] pub const fn new(x: f64, y: f64, z: f64) -> Self { Vec3 { x, y, z } }
+    #[inline]
+    pub const fn new(x: f64, y: f64, z: f64) -> Self {
+        Vec3 { x, y, z }
+    }
 
-    #[inline] pub fn splat(v: f64) -> Self { Vec3 { x: v, y: v, z: v } }
+    #[inline]
+    pub fn splat(v: f64) -> Self {
+        Vec3 { x: v, y: v, z: v }
+    }
 
     #[inline]
     pub fn dot(self, o: Vec3) -> f64 {
@@ -29,19 +39,33 @@ impl Vec3 {
         }
     }
 
-    #[inline] pub fn norm_sq(self) -> f64 { self.dot(self) }
-    #[inline] pub fn norm(self)    -> f64 { self.norm_sq().sqrt() }
+    #[inline]
+    pub fn norm_sq(self) -> f64 {
+        self.dot(self)
+    }
+    #[inline]
+    pub fn norm(self) -> f64 {
+        self.norm_sq().sqrt()
+    }
 
     #[inline]
     pub fn normalize(self) -> Vec3 {
         let n = self.norm();
-        if n == 0.0 { Vec3::ZERO } else { self / n }
+        if n == 0.0 {
+            Vec3::ZERO
+        } else {
+            self / n
+        }
     }
 
     #[inline]
     pub fn normalize_or(self, fallback: Vec3) -> Vec3 {
         let n = self.norm();
-        if n == 0.0 { fallback } else { self / n }
+        if n == 0.0 {
+            fallback
+        } else {
+            self / n
+        }
     }
 
     #[inline]
@@ -62,48 +86,98 @@ impl Vec3 {
 impl Add for Vec3 {
     type Output = Vec3;
     #[inline]
-    fn add(self, o: Vec3) -> Vec3 { Vec3 { x: self.x + o.x, y: self.y + o.y, z: self.z + o.z } }
+    fn add(self, o: Vec3) -> Vec3 {
+        Vec3 {
+            x: self.x + o.x,
+            y: self.y + o.y,
+            z: self.z + o.z,
+        }
+    }
 }
 impl Sub for Vec3 {
     type Output = Vec3;
     #[inline]
-    fn sub(self, o: Vec3) -> Vec3 { Vec3 { x: self.x - o.x, y: self.y - o.y, z: self.z - o.z } }
+    fn sub(self, o: Vec3) -> Vec3 {
+        Vec3 {
+            x: self.x - o.x,
+            y: self.y - o.y,
+            z: self.z - o.z,
+        }
+    }
 }
 impl Neg for Vec3 {
     type Output = Vec3;
     #[inline]
-    fn neg(self) -> Vec3 { Vec3 { x: -self.x, y: -self.y, z: -self.z } }
+    fn neg(self) -> Vec3 {
+        Vec3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
 }
 impl Mul<f64> for Vec3 {
     type Output = Vec3;
     #[inline]
-    fn mul(self, s: f64) -> Vec3 { Vec3 { x: self.x * s, y: self.y * s, z: self.z * s } }
+    fn mul(self, s: f64) -> Vec3 {
+        Vec3 {
+            x: self.x * s,
+            y: self.y * s,
+            z: self.z * s,
+        }
+    }
 }
 impl Mul<Vec3> for f64 {
     type Output = Vec3;
     #[inline]
-    fn mul(self, v: Vec3) -> Vec3 { v * self }
+    fn mul(self, v: Vec3) -> Vec3 {
+        v * self
+    }
 }
 impl Div<f64> for Vec3 {
     type Output = Vec3;
     #[inline]
-    fn div(self, s: f64) -> Vec3 { let inv = 1.0 / s; Vec3 { x: self.x * inv, y: self.y * inv, z: self.z * inv } }
+    fn div(self, s: f64) -> Vec3 {
+        let inv = 1.0 / s;
+        Vec3 {
+            x: self.x * inv,
+            y: self.y * inv,
+            z: self.z * inv,
+        }
+    }
 }
 impl AddAssign for Vec3 {
     #[inline]
-    fn add_assign(&mut self, o: Vec3) { self.x += o.x; self.y += o.y; self.z += o.z; }
+    fn add_assign(&mut self, o: Vec3) {
+        self.x += o.x;
+        self.y += o.y;
+        self.z += o.z;
+    }
 }
 impl SubAssign for Vec3 {
     #[inline]
-    fn sub_assign(&mut self, o: Vec3) { self.x -= o.x; self.y -= o.y; self.z -= o.z; }
+    fn sub_assign(&mut self, o: Vec3) {
+        self.x -= o.x;
+        self.y -= o.y;
+        self.z -= o.z;
+    }
 }
 impl MulAssign<f64> for Vec3 {
     #[inline]
-    fn mul_assign(&mut self, s: f64) { self.x *= s; self.y *= s; self.z *= s; }
+    fn mul_assign(&mut self, s: f64) {
+        self.x *= s;
+        self.y *= s;
+        self.z *= s;
+    }
 }
 impl DivAssign<f64> for Vec3 {
     #[inline]
-    fn div_assign(&mut self, s: f64) { let inv = 1.0 / s; self.x *= inv; self.y *= inv; self.z *= inv; }
+    fn div_assign(&mut self, s: f64) {
+        let inv = 1.0 / s;
+        self.x *= inv;
+        self.y *= inv;
+        self.z *= inv;
+    }
 }
 
 #[cfg(test)]
