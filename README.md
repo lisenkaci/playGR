@@ -2,9 +2,13 @@
 
 A browser-based playground that simulates **Maxwell's equations** and **Extended Gravitoelectromagnetism (GEM)** with **Jefimenko / Liénard–Wiechert retarded potentials**, in strict 64-bit floating-point — with no cheating on the physical constants.
 
+**Live demo:** <https://lisenkaci.github.io/playGR/>
+
 > **Status**: open source, MIT licensed, contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [ARCHITECTURE.md](ARCHITECTURE.md) before opening a PR.
 
-![screenshot placeholder — drop a screenshot or short GIF in docs/preview.gif and update this path](./docs/preview.gif)
+<p align="center">
+  <img src="./docs/preview.png" alt="Spacetime Sandbox: a binary system (top-left) warps the wireframe lattice while spacetime-river streamlines flow into the wells; the right-hand panel shows the simulation and visualisation controls" width="640">
+</p>
 
 ## What it does
 
